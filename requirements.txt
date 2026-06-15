@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+pydantic-settings
+sentence-transformers
+huggingface-hub
+qdrant-client
+pypdf
+python-multipart
