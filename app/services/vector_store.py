@@ -17,7 +17,7 @@ async def ensure_collection(vector_size: int) -> None:
 
 async def upsert(chunks: list[str], embeddings: list[list[float]]) -> None:
     points = [
-        PointStruct(id=str(uuid.uuid4()), vector=vec, payload={"text": chunk})
+        PointStruct(id=str(uuid.uuid5(uuid.NAMESPACE_OID, chunk)), vector=vec, payload={"text": chunk})
         for chunk, vec in zip(chunks, embeddings)
     ]
     await client.upsert(collection_name=settings.qdrant_collection, points=points)
