@@ -4,5 +4,6 @@ pydantic-settings
 sentence-transformers
 huggingface-hub
 qdrant-client
-pypdf
+pymupdf
+langchain-text-splitters
 python-multipart
