@@ -29,4 +29,6 @@ async def search(query_vector: list[float], top_k: int) -> list[str]:
         query=query_vector,
         limit=top_k,
     )
+    for i, hit in enumerate(results.points):
+        print(f"\n--- Chunk {i+1} | Score: {hit.score:.4f} ---\n{hit.payload['text']}")
     return [hit.payload["text"] for hit in results.points]

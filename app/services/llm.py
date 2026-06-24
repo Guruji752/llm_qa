@@ -5,8 +5,12 @@ from app.core.config import settings
 _client = InferenceClient(token=settings.hf_token)
 
 SYSTEM_PROMPT = (
-    "You are a helpful assistant. Answer the question using only the provided context. "
-    "If the answer is not in the context, say so."
+    "You are a helpful assistant answering questions about a resume. "
+    "Use only the provided context to answer. "
+    # "You MAY reason, calculate, and infer from the information present — for example, computing "
+    # "total experience from date ranges, inferring seniority from titles, or identifying gaps between jobs. "
+    # "If the context genuinely does not contain enough information to answer or reason toward an answer, say so."
+    # "don't output over whelming response save be specific to the question"
 )
 
 
