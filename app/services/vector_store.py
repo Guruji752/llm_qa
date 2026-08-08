@@ -1,6 +1,7 @@
 import uuid
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
+from langfuse import observe
 from app.core.config import settings
 
 client = AsyncQdrantClient(url=settings.qdrant_url)
@@ -23,11 +24,12 @@ async def upsert(chunks: list[str], embeddings: list[list[float]]) -> None:
     await client.upsert(collection_name=settings.qdrant_collection, points=points)
 
 
+@observe(name="vector_search", as_type="retriever")
 async def search(query_vector: list[float], top_k: int) -> list[str]:
     results = await client.query_points(
         collection_name=settings.qdrant_collection,
         query=query_vector,
-        limit=top_k,
+        limit=top_k
     )
     for i, hit in enumerate(results.points):
         print(f"\n--- Chunk {i+1} | Score: {hit.score:.4f} ---\n{hit.payload['text']}")

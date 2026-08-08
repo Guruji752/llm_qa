@@ -24,13 +24,13 @@ def paragraph_chunks(
     current_len = 0
 
     for para in paragraphs:
-        # A single paragraph already exceeds the limit — emit it alone.
+        # A single paragraph already exceeds the limit — split it by sentences.
         if len(para) > max_chars:
             if current_parts:
                 chunks.append("\n\n".join(current_parts))
-            chunks.append(para)
-            current_parts = []
-            current_len = 0
+                current_parts = []
+                current_len = 0
+            chunks.extend(_split_large_paragraph(para, max_chars))
             continue
 
         if current_len + len(para) > max_chars and current_parts:
@@ -46,3 +46,19 @@ def paragraph_chunks(
         chunks.append("\n\n".join(current_parts))
 
     return chunks
+
+
+def _split_large_paragraph(text: str, max_chars: int) -> list[str]:
+    # Split by newlines then sentence endings to get smaller units
+    import re
+    lines = [s.strip() for s in re.split(r"\n|(?<=[.!?])\s+", text) if s.strip()]
+    result, current = [], ""
+    for line in lines:
+        if current and len(current) + len(line) + 1 > max_chars:
+            result.append(current)
+            current = line
+        else:
+            current = (current + " " + line).strip() if current else line
+    if current:
+        result.append(current)
+    return result

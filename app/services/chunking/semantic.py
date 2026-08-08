@@ -16,14 +16,15 @@ Requires: openai (already in your stack via embedder.py)
 import re
 
 import numpy as np
-from openai import OpenAI
+from huggingface_hub import InferenceClient
+from app.core.config import settings
+
+_client = InferenceClient(token=settings.hf_token)
 
 
 def semantic_chunks(
     text: str,
-    threshold: float = 0.75,
-    embed_model: str = "text-embedding-3-small",
-    client: OpenAI | None = None,
+    threshold: float = 0.50,
 ) -> list[str]:
     sentences = _split_sentences(text)
     if not sentences:
@@ -31,8 +32,8 @@ def semantic_chunks(
     if len(sentences) == 1:
         return sentences
 
-    client = client or OpenAI()
-    embeddings = _embed_batch(sentences, embed_model, client)
+    result = _client.feature_extraction(sentences, model=settings.embedding_model)
+    embeddings = np.array(result).tolist()
 
     chunks: list[str] = []
     group = [sentences[0]]
@@ -52,13 +53,32 @@ def semantic_chunks(
 
 
 def _split_sentences(text: str) -> list[str]:
-    parts = re.split(r"(?<=[.!?])\s+", text.strip())
-    return [p.strip() for p in parts if p.strip()]
+    # Split on blank lines first (hard section boundaries), then on newlines
+    lines = re.split(r"\n\s*\n|\n", text.strip())
+    lines = [l.strip() for l in lines if l.strip()]
 
+    # Merge lines that are too short (< 5 words) into the next line to avoid
+    # fragmenting standalone date ranges or labels like "Experience"
+    merged: list[str] = []
+    buffer = ""
+    for line in lines:
+        if buffer:
+            line = buffer + " " + line
+            buffer = ""
+        if len(line.split()) < 5 and merged:
+            merged[-1] = merged[-1] + " " + line
+        elif len(line.split()) < 5:
+            buffer = line
+        else:
+            merged.append(line)
 
-def _embed_batch(sentences: list[str], model: str, client: OpenAI) -> list[list[float]]:
-    response = client.embeddings.create(input=sentences, model=model)
-    return [item.embedding for item in response.data]
+    if buffer:
+        if merged:
+            merged[-1] = merged[-1] + " " + buffer
+        else:
+            merged.append(buffer)
+
+    return merged
 
 
 def _cosine(a: list[float], b: list[float]) -> float:
