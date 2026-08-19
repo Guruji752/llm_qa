@@ -21,7 +21,12 @@ langfuse = Langfuse(public_key=settings.LANGFUSE_PUBLIC_KEY,
 @observe()
 async def query(request: QueryRequest):
     query_embedding = await embedder.embed([request.question])
-    candidates = await vector_store.search(query_embedding[0], request.top_k * 3)
+    candidates = await vector_store.search(
+        query_embedding[0],
+        request.top_k * 3,
+        user_id=request.user_id,
+        document_id=request.document_id,
+    )
     # context_chunks = await reranker.rerank(request.question, candidates, request.top_k)
     # candidates = await vector_store.search(query_embedding[0], request.top_k)
     answer = await llm.generate_answer(request.question, candidates)

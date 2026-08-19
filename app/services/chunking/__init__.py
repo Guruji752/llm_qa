@@ -3,6 +3,7 @@ from .recursive import recursive_chunks
 from .sentence import sentence_chunks
 from .paragraph import paragraph_chunks
 from .semantic import semantic_chunks
+from .section import section_chunks
 
 __all__ = [
     "fixed_size_chunks",
@@ -10,4 +11,5 @@ __all__ = [
     "sentence_chunks",
     "paragraph_chunks",
     "semantic_chunks",
+    "section_chunks",
 ]
